@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chumbazo Live ⚽</title>
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+
+<!-- MODAL APODO -->
+<div id="nickname-overlay">
+  <div class="modal-box">
+    <div class="logo">⚽ Chumbazo</div>
+    <div class="subtitle">Sala de transmisión — Mundial 2026</div>
+    <label for="nickname-input">Tu apodo en el chat</label>
+    <input
+      id="nickname-input"
+      type="text"
+      placeholder="Ej: GoleadorArgento"
+      maxlength="24"
+      autocomplete="off"
+    />
+    <button id="join-btn">Entrar al stream</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="brand">⚽ Chumbazo Live</div>
+    <div class="live-badge">EN VIVO</div>
+    <div class="viewers">
+      👁 <span id="viewer-count">1</span> espectadores
+    </div>
+  </header>
+
+  <div class="main-area">
+    <!-- PLAYER -->
+    <div class="player-panel">
+      <iframe
+        id="stream-frame"
+        src=""
+        allowfullscreen
+        allow="autoplay; fullscreen"
+        title="Stream en vivo"
+      ></iframe>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel">
+      <div class="chat-header">Chat en vivo</div>
+      <div id="messages"></div>
+
+      <div class="emoji-bar">
+        <button class="emoji-btn" data-emoji="⚽">⚽</button>
+        <button class="emoji-btn" data-emoji="🥅">🥅</button>
+        <button class="emoji-btn" data-emoji="🚩">🚩</button>
+        <button class="emoji-btn" data-emoji="🔥">🔥</button>
+        <button class="emoji-btn" data-emoji="😱">😱</button>
+        <button class="emoji-btn" data-emoji="🎉">🎉</button>
+      </div>
+
+      <div class="chat-input-area">
+        <input
+          id="msg-input"
+          type="text"
+          placeholder="Escribí algo..."
+          maxlength="300"
+          autocomplete="off"
+          disabled
+        />
+        <button id="send-btn" disabled>➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/chat.js"></script>
+</body>
+</html>
