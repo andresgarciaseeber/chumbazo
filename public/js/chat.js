@@ -17,6 +17,62 @@
     .then(r => r.json())
     .then(({ streamUrl }) => { if (streamUrl) streamFrame.src = streamUrl; });
 
+  // ── Scores ───────────────────────────────────────────────────────────
+  fetchScores();
+  setInterval(fetchScores, 60000);
+
+  function fetchScores() {
+    fetch('/api/scores')
+      .then(r => r.json())
+      .then(renderScores)
+      .catch(() => {});
+  }
+
+  function renderScores({ type, matches }) {
+    const bar     = document.getElementById('score-bar');
+    const ticker  = document.getElementById('sb-matches');
+    const label   = document.getElementById('sb-label');
+    if (!matches || !matches.length) { bar.classList.add('hidden'); return; }
+
+    label.textContent = type === 'live' ? '🔴 EN VIVO' : '📅 HOY';
+    ticker.innerHTML  = matches.map(m => renderMatch(m, type)).join('');
+    bar.classList.remove('hidden');
+  }
+
+  function renderMatch(m, type) {
+    const homeName  = m.home?.name  || m.home_team?.name  || '?';
+    const awayName  = m.away?.name  || m.away_team?.name  || '?';
+    const homeLogo  = m.home?.logo  || m.home_team?.logo  || '';
+    const awayLogo  = m.away?.logo  || m.away_team?.logo  || '';
+    const homeScore = m.home_score  ?? m.score?.home      ?? m.goals?.home;
+    const awayScore = m.away_score  ?? m.score?.away      ?? m.goals?.away;
+    const status    = (m.status || '').toUpperCase();
+    const minute    = m.minute || m.elapsed || '';
+
+    const isLive = ['LIVE','1H','2H','HT','ET','BT','P'].includes(status);
+    const isFin  = ['FT','AET','PEN'].includes(status);
+
+    const homeEl = `<span class="sb-team">${homeLogo ? `<img src="${homeLogo}" alt="">` : ''}${esc(homeName)}</span>`;
+    const awayEl = `<span class="sb-team">${awayLogo ? `<img src="${awayLogo}" alt="">` : ''}${esc(awayName)}</span>`;
+
+    let middle = '';
+    if (isLive && homeScore !== undefined) {
+      middle = `<span class="sb-score">${homeScore} - ${awayScore}</span>
+                <span class="sb-min">${minute ? minute + "'" : 'VIVO'}</span>`;
+    } else if (isFin && homeScore !== undefined) {
+      middle = `<span class="sb-score">${homeScore} - ${awayScore}</span>
+                <span class="sb-time">FIN</span>`;
+    } else {
+      // Fixture sin score: muestra hora local
+      const hora = m.time ? m.time.slice(0, 5) : '';
+      middle = `<span class="sb-vs">vs</span>${hora ? `<span class="sb-time">${hora}</span>` : ''}`;
+    }
+
+    const liveBadge = isLive ? '<span class="sb-live-badge">LIVE</span>' : '';
+
+    return `<div class="sb-match">${liveBadge}${homeEl}${middle}${awayEl}</div>`;
+  }
+
   // ── Modal de apodo ───────────────────────────────────────────────────
   function tryJoin() {
     const nick = nickInput.value.trim();

@@ -92,6 +92,100 @@ html, body {
 }
 .modal-box button:hover { background: var(--accent-dim); }
 
+/* ─── SCORE BAR ─── */
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 38px;
+  background: #111820;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.score-bar::-webkit-scrollbar { display: none; }
+.score-bar.hidden { display: none; }
+
+.sb-label {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+#sb-matches {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sb-match {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: .78rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sb-team {
+  color: var(--text);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sb-team img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.sb-score {
+  font-weight: 800;
+  color: #fff;
+  font-size: .85rem;
+  padding: 0 4px;
+}
+
+.sb-vs {
+  color: var(--text-muted);
+  font-size: .75rem;
+  padding: 0 2px;
+}
+
+.sb-time {
+  color: var(--text-muted);
+  font-size: .72rem;
+  padding: 0 2px;
+}
+
+.sb-live-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: .05em;
+  animation: pulse 2s infinite;
+}
+
+.sb-min {
+  color: #ef4444;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
 /* ─── LAYOUT ─── */
 #app {
   display: flex;
