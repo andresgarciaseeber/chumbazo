@@ -7,9 +7,10 @@
   const messagesEl  = document.getElementById('messages');
   const streamFrame = document.getElementById('stream-frame');
 
-  let myNick   = '';
-  let lastTs   = 0;
-  let pollTimer = null;
+  let myNick    = '';
+  let lastTs    = 0;
+  let sessionId = Math.random().toString(36).slice(2);
+  const viewerEl = document.getElementById('viewer-count');
 
   // ── Stream URL ───────────────────────────────────────────────────────
   fetch('/api/config')
@@ -29,6 +30,7 @@
     loadHistory().then(() => {
       postMsg(`${nick} se unió al chat`, 'system');
       startPolling();
+      startHeartbeat();
     });
   }
 
@@ -45,6 +47,23 @@
         if (messages.length) lastTs = messages[messages.length - 1].ts;
         scrollBottom();
       });
+  }
+
+  // ── Heartbeat: presencia y contador de espectadores ─────────────────
+  function startHeartbeat() {
+    sendHeartbeat();
+    setInterval(sendHeartbeat, 20000);
+  }
+
+  function sendHeartbeat() {
+    fetch('/api/viewers', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ sessionId }),
+    })
+      .then(r => r.json())
+      .then(({ count }) => { if (viewerEl) viewerEl.textContent = count; })
+      .catch(() => {});
   }
 
   // ── Polling de mensajes nuevos ───────────────────────────────────────
