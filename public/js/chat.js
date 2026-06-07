@@ -22,7 +22,9 @@
   setInterval(fetchScores, 60000);
 
   function fetchScores() {
-    fetch('/api/scores')
+    const mock = new URLSearchParams(location.search).get('mockscores');
+    const url  = mock ? `/api/scores?mock=${mock}` : '/api/scores';
+    fetch(url)
       .then(r => r.json())
       .then(renderScores)
       .catch(() => {});
