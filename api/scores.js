@@ -21,17 +21,17 @@ const MOCK = {
       {
         id: 9001, status: 'LIVE', minute: 67, home_score: 2, away_score: 1,
         home: { name: 'Argentina', logo: 'https://cdn.worldcupapi.com/teams/1444.png' },
-        away: { name: 'Brazil',    logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
+        away: { name: 'Brasil',    logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
       },
       {
         id: 9002, status: 'HT', minute: 45, home_score: 0, away_score: 0,
-        home: { name: 'France',  logo: 'https://cdn.worldcupapi.com/teams/1441.png' },
-        away: { name: 'Germany', logo: 'https://cdn.worldcupapi.com/teams/1449.png' },
+        home: { name: 'Francia',  logo: 'https://cdn.worldcupapi.com/teams/1441.png' },
+        away: { name: 'Alemania', logo: 'https://cdn.worldcupapi.com/teams/1449.png' },
       },
       {
         id: 9003, status: 'FT', minute: 90, home_score: 3, away_score: 2,
-        home: { name: 'Spain',   logo: 'https://cdn.worldcupapi.com/teams/1456.png' },
-        away: { name: 'Croatia', logo: 'https://cdn.worldcupapi.com/teams/1647.png' },
+        home: { name: 'España',  logo: 'https://cdn.worldcupapi.com/teams/1456.png' },
+        away: { name: 'Croacia', logo: 'https://cdn.worldcupapi.com/teams/1647.png' },
       },
     ],
   },
@@ -39,19 +39,19 @@ const MOCK = {
     type: 'fixtures',
     matches: [
       {
-        id: 9101, time: '16:00:00', location: 'Estadio Azteca, Mexico City',
-        home: { name: 'Mexico', logo: 'https://cdn.worldcupapi.com/teams/1450.png' },
+        id: 9101, time: '16:00:00', location: 'Estadio Azteca, Ciudad de México',
+        home: { name: 'México', logo: 'https://cdn.worldcupapi.com/teams/1450.png' },
         away: { name: 'Argentina', logo: 'https://cdn.worldcupapi.com/teams/1444.png' },
       },
       {
         id: 9102, time: '19:30:00', location: 'MetLife Stadium, East Rutherford',
-        home: { name: 'Brazil', logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
+        home: { name: 'Brasil', logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
         away: { name: 'Portugal', logo: 'https://cdn.worldcupapi.com/teams/1454.png' },
       },
       {
         id: 9103, time: '22:00:00', location: 'SoFi Stadium, Inglewood',
-        home: { name: 'USA', logo: 'https://cdn.worldcupapi.com/teams/1849.png' },
-        away: { name: 'England', logo: 'https://cdn.worldcupapi.com/teams/1429.png' },
+        home: { name: 'Estados Unidos', logo: 'https://cdn.worldcupapi.com/teams/1849.png' },
+        away: { name: 'Inglaterra', logo: 'https://cdn.worldcupapi.com/teams/1429.png' },
       },
     ],
   },
