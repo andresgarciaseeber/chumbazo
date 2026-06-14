@@ -42,7 +42,6 @@
     .msg .nick   { font-weight: 700; color: var(--accent); margin-right: 5px; }
     .msg .body   { color: var(--text); }
     .msg .time   { color: var(--text-muted); font-size: .7rem; margin-left: 6px; }
-    .msg-system  { font-size: .78rem; color: var(--system); font-style: italic; text-align: center; padding: 2px 0; }
   </style>
 </head>
 <body>
@@ -67,11 +66,9 @@
   }
 
   function renderMsg(m) {
+    if (m.type === 'system') return;
     const el = document.createElement('div');
-    if (m.type === 'system') {
-      el.className = 'msg-system';
-      el.textContent = m.text;
-    } else {
+    {
       el.className = 'msg';
       const time = new Date(m.ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       el.innerHTML =
