@@ -234,6 +234,24 @@ header .viewers {
 }
 header .viewers span { color: var(--text); font-weight: 600; }
 
+.ig-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #833ab4;
+  color: #e1306c;
+  text-decoration: none;
+  font-size: .78rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.ig-link:hover { background: rgba(225,48,108,.12); }
+.ig-link svg { flex-shrink: 0; }
+
 .main-area {
   display: flex;
   flex: 1;
