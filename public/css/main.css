@@ -193,32 +193,52 @@ html, body {
   height: 100vh;
 }
 
+/* ─── HEADER ─── */
 header {
-  height: var(--header-h);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  gap: 16px;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: var(--header-h);
+  flex-wrap: nowrap;
+}
+
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
+
 header .brand {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: var(--accent);
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 header .live-badge {
   background: #ef4444;
   color: #fff;
-  font-size: .65rem;
+  font-size: .62rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 3px 7px;
   border-radius: 4px;
   letter-spacing: .1em;
   text-transform: uppercase;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -226,31 +246,76 @@ header .live-badge {
 }
 header .viewers {
   margin-left: auto;
-  font-size: .8rem;
+  font-size: .78rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  white-space: nowrap;
 }
 header .viewers span { color: var(--text); font-weight: 600; }
+
+.lpf-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  text-decoration: none;
+  font-size: .75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.lpf-link:hover { background: #2a2a2a; }
+.lpf-link img {
+  height: 20px;
+  width: auto;
+  display: block;
+}
 
 .ig-link {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 12px;
-  padding: 5px 12px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: 20px;
   border: 1px solid #833ab4;
   color: #e1306c;
   text-decoration: none;
-  font-size: .78rem;
+  font-size: .75rem;
   font-weight: 600;
   flex-shrink: 0;
   transition: background .15s;
 }
 .ig-link:hover { background: rgba(225,48,108,.12); }
 .ig-link svg { flex-shrink: 0; }
+
+/* ─── MOBILE HEADER ─── */
+@media (max-width: 700px) {
+  header {
+    flex-wrap: wrap;
+    padding: 0 12px;
+    gap: 0;
+    min-height: auto;
+  }
+  .header-main {
+    width: 100%;
+    height: 48px;
+    gap: 8px;
+  }
+  .header-links {
+    width: 100%;
+    padding: 6px 0 8px;
+    gap: 8px;
+  }
+  header .brand { font-size: 1.1rem; }
+  .viewers-label { display: none; }
+  .lpf-link span, .ig-link span { font-size: .72rem; }
+}
 
 .main-area {
   display: flex;
