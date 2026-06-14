@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chumbazo Chat</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d0d0d;
+      --surface:     #1a1a1a;
+      --surface-2:   #242424;
+      --border:      #2e2e2e;
+      --accent:      #f97316;
+      --accent-dim:  #c2570e;
+      --text:        #f0f0f0;
+      --text-muted:  #888;
+      --system:      #4ade80;
+      --radius:      8px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── OVERLAY APODO ── */
+    #overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    #overlay.hidden { display: none; }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 30px;
+      width: 300px;
+      text-align: center;
+    }
+    .modal-box .logo  { font-size: 1.6rem; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
+    .modal-box .sub   { color: var(--text-muted); font-size: .82rem; margin-bottom: 22px; }
+    .modal-box label  { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 7px; text-align: left; }
+    .modal-box input  { width: 100%; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: .95rem; outline: none; margin-bottom: 14px; }
+    .modal-box input:focus { border-color: var(--accent); }
+    .modal-box button { width: 100%; padding: 10px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-size: .95rem; font-weight: 700; cursor: pointer; }
+    .modal-box button:hover { background: var(--accent-dim); }
+
+    /* ── LAYOUT ── */
+    #chat-app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── MENSAJES ── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg         { font-size: .875rem; line-height: 1.45; word-break: break-word; }
+    .msg .nick   { font-weight: 700; color: var(--accent); margin-right: 5px; }
+    .msg .body   { color: var(--text); }
+    .msg .time   { color: var(--text-muted); font-size: .7rem; margin-left: 6px; }
+    .msg-system  { font-size: .78rem; color: var(--system); font-style: italic; text-align: center; padding: 2px 0; }
+
+    /* ── INPUT ── */
+    .input-area {
+      padding: 8px 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .input-row { display: flex; gap: 8px; }
+    #msg-input {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: .9rem;
+      outline: none;
+    }
+    #msg-input:focus { border-color: var(--accent); }
+    #msg-input::placeholder { color: var(--text-muted); }
+    #msg-input:disabled { opacity: .4; cursor: not-allowed; }
+
+    #send-btn {
+      padding: 9px 14px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #send-btn:hover { background: var(--accent-dim); }
+    #send-btn:disabled { opacity: .4; cursor: default; }
+
+    .emoji-bar { display: flex; gap: 5px; flex-wrap: wrap; }
+    .emoji-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: .95rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .emoji-btn:hover { background: var(--surface); }
+  </style>
+</head>
+<body>
+
+<!-- MODAL APODO -->
+<div id="overlay">
+  <div class="modal-box">
+    <div class="logo">⚽ Chumbazo</div>
+    <div class="sub">Chat del stream en vivo</div>
+    <label for="nick-input">Tu apodo</label>
+    <input id="nick-input" type="text" placeholder="Ej: GoleadorArgento" maxlength="24" autocomplete="off" />
+    <button id="join-btn">Entrar al chat</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat-app">
+  <div id="messages"></div>
+
+  <div class="input-area">
+    <div class="emoji-bar">
+      <button class="emoji-btn" data-emoji="⚽">⚽</button>
+      <button class="emoji-btn" data-emoji="🔥">🔥</button>
+      <button class="emoji-btn" data-emoji="👏">👏</button>
+      <button class="emoji-btn" data-emoji="😱">😱</button>
+      <button class="emoji-btn" data-emoji="🎉">🎉</button>
+      <button class="emoji-btn" data-emoji="💪">💪</button>
+    </div>
+    <div class="input-row">
+      <input id="msg-input" type="text" placeholder="Escribí un mensaje…" maxlength="300" disabled autocomplete="off" />
+      <button id="send-btn" disabled>➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const overlay   = document.getElementById('overlay');
+  const nickInput = document.getElementById('nick-input');
+  const joinBtn   = document.getElementById('join-btn');
+  const msgInput  = document.getElementById('msg-input');
+  const sendBtn   = document.getElementById('send-btn');
+  const messages  = document.getElementById('messages');
+
+  let myNick = '';
+  let lastTs = 0;
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function scrollBottom() { messages.scrollTop = messages.scrollHeight; }
+
+  function trimMessages() {
+    while (messages.children.length > 80) messages.removeChild(messages.firstChild);
+  }
+
+  function appendMsg({ nickname, text, ts }) {
+    const el = document.createElement('div');
+    el.className = 'msg';
+    const time = new Date(ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    el.innerHTML =
+      `<span class="nick">${esc(nickname)}</span>` +
+      `<span class="body">${esc(text)}</span>` +
+      `<span class="time">${time}</span>`;
+    messages.appendChild(el);
+    trimMessages();
+  }
+
+  function appendSystem(text) {
+    const el = document.createElement('div');
+    el.className = 'msg-system';
+    el.textContent = text;
+    messages.appendChild(el);
+    trimMessages();
+  }
+
+  function renderMsg(m) {
+    if (m.type === 'system') appendSystem(m.text);
+    else appendMsg(m);
+  }
+
+  function tryJoin() {
+    const nick = nickInput.value.trim();
+    if (!nick) { nickInput.focus(); return; }
+    myNick = nick;
+    overlay.classList.add('hidden');
+    msgInput.disabled = false;
+    sendBtn.disabled  = false;
+    msgInput.focus();
+
+    fetch('/api/messages')
+      .then(r => r.json())
+      .then(msgs => {
+        msgs.forEach(renderMsg);
+        if (msgs.length) lastTs = msgs[msgs.length - 1].ts;
+        scrollBottom();
+        postMsg(`${nick} se unió al chat`, 'system');
+        setInterval(fetchNew, 1500);
+      });
+  }
+
+  function fetchNew() {
+    fetch(`/api/messages?since=${lastTs}`)
+      .then(r => r.json())
+      .then(msgs => {
+        if (!msgs.length) return;
+        msgs.forEach(renderMsg);
+        lastTs = msgs[msgs.length - 1].ts;
+        scrollBottom();
+      })
+      .catch(() => {});
+  }
+
+  function postMsg(text, type) {
+    fetch('/api/messages', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ nickname: myNick, text, type }),
+    }).then(r => r.json()).then(({ ts }) => {
+      if (ts) lastTs = Math.max(lastTs, ts - 1);
+    }).catch(() => {});
+  }
+
+  function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    msgInput.value = '';
+    msgInput.focus();
+    postMsg(text, 'message');
+  }
+
+  joinBtn.addEventListener('click', tryJoin);
+  nickInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryJoin(); });
+  sendBtn.addEventListener('click', sendMessage);
+  msgInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+  document.querySelectorAll('.emoji-btn').forEach(btn => {
+    btn.addEventListener('click', () => { msgInput.value += btn.dataset.emoji; msgInput.focus(); });
+  });
+
+  nickInput.focus();
+})();
+</script>
+</body>
+</html>
