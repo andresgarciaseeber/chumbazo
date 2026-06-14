@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Espectadores</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .widget {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 8px 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .icon { font-size: 1.1rem; line-height: 1; }
+
+    .count {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      min-width: 1.5ch;
+      text-align: center;
+    }
+
+    .label {
+      font-size: .78rem;
+      color: rgba(255,255,255,.65);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget">
+    <span class="icon">👁</span>
+    <span class="count" id="count">—</span>
+    <span class="label">espectadores</span>
+  </div>
+
+  <script>
+    const countEl = document.getElementById('count');
+
+    function refresh() {
+      fetch('/api/viewers')
+        .then(r => r.json())
+        .then(({ count }) => { countEl.textContent = count ?? '—'; })
+        .catch(() => {});
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
