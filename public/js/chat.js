@@ -66,7 +66,11 @@
                 <span class="sb-time">FIN</span>`;
     } else {
       // Fixture sin score: muestra hora local
-      const hora = m.time ? m.time.slice(0, 5) : '';
+      const hora = m.time
+        ? m.time.slice(0, 5)
+        : m.kickoff
+          ? new Date(m.kickoff).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+          : '';
       middle = `<span class="sb-vs">vs</span>${hora ? `<span class="sb-time">${hora}</span>` : ''}`;
     }
 

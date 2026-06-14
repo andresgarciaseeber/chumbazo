@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const BASE_URL  = 'https://api.worldcupapi.com';
+const ESPN_URL  = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
 const CACHE_TTL = 30 * 1000;
 
 let cachedClient = null;
@@ -12,71 +12,49 @@ async function getDb() {
   return cachedClient.db('chumbazo_live');
 }
 
-// Datos de muestra para previsualizar la barra antes de que arranque el torneo (11/06).
-// Activable con /api/scores?mock=live  o  /api/scores?mock=fixtures
-const MOCK = {
-  live: {
-    type: 'live',
-    matches: [
-      {
-        id: 9001, status: 'LIVE', minute: 67, home_score: 2, away_score: 1,
-        home: { name: 'Argentina', logo: 'https://cdn.worldcupapi.com/teams/1444.png' },
-        away: { name: 'Brasil',    logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
-      },
-      {
-        id: 9002, status: 'HT', minute: 45, home_score: 0, away_score: 0,
-        home: { name: 'Francia',  logo: 'https://cdn.worldcupapi.com/teams/1441.png' },
-        away: { name: 'Alemania', logo: 'https://cdn.worldcupapi.com/teams/1449.png' },
-      },
-      {
-        id: 9003, status: 'FT', minute: 90, home_score: 3, away_score: 2,
-        home: { name: 'España',  logo: 'https://cdn.worldcupapi.com/teams/1456.png' },
-        away: { name: 'Croacia', logo: 'https://cdn.worldcupapi.com/teams/1647.png' },
-      },
-    ],
-  },
-  fixtures: {
-    type: 'fixtures',
-    matches: [
-      {
-        id: 9101, time: '16:00:00', location: 'Estadio Azteca, Ciudad de México',
-        home: { name: 'México', logo: 'https://cdn.worldcupapi.com/teams/1450.png' },
-        away: { name: 'Argentina', logo: 'https://cdn.worldcupapi.com/teams/1444.png' },
-      },
-      {
-        id: 9102, time: '19:30:00', location: 'MetLife Stadium, East Rutherford',
-        home: { name: 'Brasil', logo: 'https://cdn.worldcupapi.com/teams/1448.png' },
-        away: { name: 'Portugal', logo: 'https://cdn.worldcupapi.com/teams/1454.png' },
-      },
-      {
-        id: 9103, time: '22:00:00', location: 'SoFi Stadium, Inglewood',
-        home: { name: 'Estados Unidos', logo: 'https://cdn.worldcupapi.com/teams/1849.png' },
-        away: { name: 'Inglaterra', logo: 'https://cdn.worldcupapi.com/teams/1429.png' },
-      },
-    ],
-  },
-};
+// status.type.name de ESPN → nuestro formato interno
+const LIVE_STATUSES = new Set(['STATUS_FIRST_HALF', 'STATUS_SECOND_HALF', 'STATUS_EXTRA_TIME', 'STATUS_BREAK', 'STATUS_PENALTY']);
+const HT_STATUSES   = new Set(['STATUS_HALFTIME']);
+const FT_STATUSES   = new Set(['STATUS_FULL_TIME', 'STATUS_FINAL_EXTRA_TIME', 'STATUS_FINAL_PENALTY']);
 
-async function apiFetch(path) {
-  const key = process.env.WORLDCUP_API_KEY;
-  const sep = path.includes('?') ? '&' : '?';
-  const url = `${BASE_URL}${path}${sep}key=${key}&lang=es`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  return res.json();
+function parseMatch(event) {
+  const comp  = event.competitions[0];
+  const home  = comp.competitors.find(t => t.homeAway === 'home');
+  const away  = comp.competitors.find(t => t.homeAway === 'away');
+  const st    = comp.status;
+  const sName = st.type.name;
+
+  const isLive = LIVE_STATUSES.has(sName);
+  const isHT   = HT_STATUSES.has(sName);
+  const isFT   = FT_STATUSES.has(sName);
+
+  let status = 'SCH';
+  if (isLive) status = 'LIVE';
+  else if (isHT) status = 'HT';
+  else if (isFT) status = 'FT';
+
+  return {
+    id:         event.id,
+    status,
+    minute:     (isLive || isHT) ? st.displayClock?.replace("'", '') : null,
+    home_score: isLive || isHT || isFT ? Number(home.score) : undefined,
+    away_score: isLive || isHT || isFT ? Number(away.score) : undefined,
+    kickoff:    comp.date,
+    home: { name: home.team.displayName, logo: home.team.logo },
+    away: { name: away.team.displayName, logo: away.team.logo },
+  };
+}
+
+async function fetchEspn() {
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const url   = `${ESPN_URL}?dates=${today}`;
+  const r     = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const data  = await r.json();
+  return (data.events || []).map(parseMatch);
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-
-  // Modo simulación — bypassa cache y API real
-  const mock = req.query?.mock;
-  if (mock && MOCK[mock]) {
-    return res.json(MOCK[mock]);
-  }
-
-  if (!process.env.WORLDCUP_API_KEY) {
-    return res.status(503).json({ type: 'none', matches: [] });
-  }
 
   try {
     const cacheCol = (await getDb()).collection('api_cache');
@@ -86,28 +64,12 @@ module.exports = async (req, res) => {
       return res.json(cached.payload);
     }
 
-    // 1. Live scores (el torneo aún no empezó — devuelve [] hasta junio)
-    let payload = null;
-    try {
-      const live = await apiFetch('/livescores');
-      // La API devuelve un array directo o { success, data: [...] }
-      const matches = Array.isArray(live) ? live
-        : Array.isArray(live?.data) ? live.data : [];
-      if (matches.length) payload = { type: 'live', matches };
-    } catch (_) {}
+    const matches = await fetchEspn();
 
-    // 2. Fixtures de hoy si no hay live
-    if (!payload) {
-      const today = new Date().toISOString().split('T')[0];
-      try {
-        const fix = await apiFetch(`/fixtures?date=${today}`);
-        const matches = Array.isArray(fix) ? fix
-          : Array.isArray(fix?.data) ? fix.data : [];
-        payload = { type: 'fixtures', matches: matches.slice(0, 8) };
-      } catch (_) {}
-    }
-
-    payload = payload || { type: 'none', matches: [] };
+    const hasLive = matches.some(m => m.status === 'LIVE' || m.status === 'HT');
+    const payload = matches.length
+      ? { type: hasLive ? 'live' : 'fixtures', matches }
+      : { type: 'none', matches: [] };
 
     await cacheCol.updateOne(
       { key: 'scores' },
