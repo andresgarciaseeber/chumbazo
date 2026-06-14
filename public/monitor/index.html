@@ -41,7 +41,6 @@
     .msg         { font-size: .875rem; line-height: 1.45; word-break: break-word; }
     .msg .nick   { font-weight: 700; color: var(--accent); margin-right: 5px; }
     .msg .body   { color: var(--text); }
-    .msg .time   { color: var(--text-muted); font-size: .7rem; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -70,11 +69,9 @@
     const el = document.createElement('div');
     {
       el.className = 'msg';
-      const time = new Date(m.ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       el.innerHTML =
         `<span class="nick">${esc(m.nickname)}</span>` +
-        `<span class="body">${esc(m.text)}</span>` +
-        `<span class="time">${time}</span>`;
+        `<span class="body">${esc(m.text)}</span>`;
     }
     messages.appendChild(el);
     trimMessages();
