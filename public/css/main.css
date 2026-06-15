@@ -191,6 +191,7 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* excluye chrome del browser en mobile (barra de URL, nav) */
 }
 
 /* ─── HEADER ─── */
@@ -523,7 +524,13 @@ header .viewers span { color: var(--text); font-weight: 600; }
 
 /* ─── RESPONSIVO ─── */
 @media (max-width: 700px) {
-  .main-area { flex-direction: column; }
-  .player-panel { height: 45vw; min-height: 200px; flex: none; }
-  .chat-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+  .main-area { flex-direction: column; overflow: hidden; }
+  .player-panel { height: 38vw; min-height: 160px; flex: none; }
+  .chat-panel {
+    width: 100%;
+    flex: 1;         /* ocupa todo el espacio restante */
+    min-height: 0;   /* sin esto el flex-child no puede shrink y no scrollea */
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
 }
