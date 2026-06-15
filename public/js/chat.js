@@ -220,4 +220,82 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  // ── Hamburger ────────────────────────────────────────────────────────
+  const hamburger = document.getElementById('hamburger');
+  const headerNav = document.getElementById('header-nav');
+
+  hamburger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = headerNav.classList.toggle('open');
+    hamburger.classList.toggle('open', open);
+    hamburger.setAttribute('aria-expanded', String(open));
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.querySelector('header').contains(e.target)) {
+      headerNav?.classList.remove('open');
+      hamburger?.classList.remove('open');
+      hamburger?.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // ── Modal suscripción ─────────────────────────────────────────────────
+  const notifyBtn  = document.getElementById('notify-btn');
+  const subOverlay = document.getElementById('sub-overlay');
+  const subClose   = document.getElementById('sub-close');
+  const subEmailEl = document.getElementById('sub-email');
+  const subSubmit  = document.getElementById('sub-submit');
+  const subStatus  = document.getElementById('sub-status');
+
+  function openSubModal() {
+    subOverlay.classList.remove('hidden');
+    headerNav?.classList.remove('open');
+    hamburger?.classList.remove('open');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    setTimeout(() => subEmailEl.focus(), 50);
+  }
+
+  function closeSubModal() {
+    subOverlay.classList.add('hidden');
+    subStatus.textContent = '';
+    subStatus.className = 'sub-status';
+  }
+
+  notifyBtn?.addEventListener('click', openSubModal);
+  subClose?.addEventListener('click', closeSubModal);
+  subOverlay?.addEventListener('click', e => { if (e.target === subOverlay) closeSubModal(); });
+  subEmailEl?.addEventListener('keydown', e => { if (e.key === 'Enter') submitSub(); });
+  subSubmit?.addEventListener('click', submitSub);
+
+  function submitSub() {
+    const email = subEmailEl.value.trim();
+    if (!email) { subEmailEl.focus(); return; }
+    subSubmit.disabled = true;
+
+    fetch('/api/subscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email }),
+    })
+      .then(r => r.json())
+      .then(({ ok, already, error }) => {
+        if (!ok) throw new Error(error || 'No se pudo guardar');
+        setSubStatus(
+          already
+            ? '¡Ya estás en la lista! Te avisamos cuando transmitamos.'
+            : '¡Listo! Te avisamos cuando estemos en vivo. 🎉',
+          true
+        );
+        subEmailEl.value = '';
+        setTimeout(closeSubModal, 3000);
+      })
+      .catch(err => setSubStatus(err.message, false))
+      .finally(() => { subSubmit.disabled = false; });
+  }
+
+  function setSubStatus(msg, ok) {
+    subStatus.textContent = msg;
+    subStatus.className = 'sub-status ' + (ok ? 'ok' : 'err');
+  }
 })();
