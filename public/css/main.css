@@ -246,7 +246,7 @@ header .viewers span { color: var(--text); font-weight: 600; }
   align-items: center;
   gap: 8px;
 }
-.lpf-link, .ig-link, .notify-btn {
+.ig-link, .notify-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -261,9 +261,6 @@ header .viewers span { color: var(--text); font-weight: 600; }
   white-space: nowrap;
   background: transparent;
 }
-.lpf-link   { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
-.lpf-link:hover { background: #2a2a2a; }
-.lpf-link img   { height: 18px; width: auto; display: block; }
 .ig-link    { border: 1px solid #833ab4; color: #e1306c; }
 .ig-link:hover  { background: rgba(225,48,108,.12); }
 .notify-btn { border: 1px solid var(--accent); color: var(--accent); }
@@ -317,7 +314,7 @@ header .viewers span { color: var(--text); font-weight: 600; }
   }
   .header-nav.open { display: flex; }
 
-  .lpf-link, .ig-link, .notify-btn {
+  .ig-link, .notify-btn {
     border-radius: 10px;
     padding: 11px 14px;
     font-size: .9rem;

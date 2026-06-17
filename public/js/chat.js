@@ -13,9 +13,11 @@
   const viewerEl = document.getElementById('viewer-count');
 
   // ── Stream URL ───────────────────────────────────────────────────────
+  // Se guarda pero no se aplica hasta que el usuario hace click (permite autoplay)
+  let pendingStreamUrl = '';
   fetch('/api/config')
     .then(r => r.json())
-    .then(({ streamUrl }) => { if (streamUrl) streamFrame.src = streamUrl; });
+    .then(({ streamUrl }) => { pendingStreamUrl = streamUrl || ''; });
 
   // ── Scores ───────────────────────────────────────────────────────────
   fetchScores();
@@ -85,6 +87,7 @@
     if (!nick) { nickInput.focus(); return; }
     myNick = nick;
     overlay.classList.add('hidden');
+    if (pendingStreamUrl) streamFrame.src = pendingStreamUrl;
     msgInput.disabled = false;
     sendBtn.disabled  = false;
     msgInput.focus();
