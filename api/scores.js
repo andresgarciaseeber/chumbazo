@@ -46,7 +46,9 @@ function parseMatch(event) {
 }
 
 async function fetchEspn() {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  // Usa la fecha en Buenos Aires (UTC-3, sin DST) para no cambiar de día a las 21hs
+  const bsas  = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  const today = bsas.toISOString().slice(0, 10).replace(/-/g, '');
   const url   = `${ESPN_URL}?dates=${today}`;
   const r     = await fetch(url, { signal: AbortSignal.timeout(8000) });
   const data  = await r.json();
