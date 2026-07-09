@@ -100,15 +100,22 @@
   <!-- PANEL -->
   <div class="admin-box hidden" id="panel-box">
     <div class="logo">⚽ Chumbazo Admin</div>
-    <div class="subtitle">Cambiar la URL de la transmisión sin redeploy</div>
+    <div class="subtitle">Panel de control del stream</div>
 
-    <label>URL actual</label>
-    <div class="current-url" id="current-url">cargando…</div>
+    <!-- Modo live / standby -->
+    <label>Estado del evento</label>
+    <div id="mode-status" style="margin-top:6px;padding:12px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;">cargando…</div>
+    <button id="mode-btn" style="margin-top:10px;">…</button>
 
-    <label for="url-input">Nueva URL de streaming</label>
-    <input id="url-input" type="text" placeholder="https://..." autocomplete="off" />
-    <button id="save-btn">Guardar</button>
-    <div class="status hidden" id="save-status"></div>
+    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
+      <label>URL actual del stream</label>
+      <div class="current-url" id="current-url">cargando…</div>
+
+      <label for="url-input">Nueva URL de streaming</label>
+      <input id="url-input" type="text" placeholder="https://..." autocomplete="off" />
+      <button id="save-btn">Guardar URL</button>
+      <div class="status hidden" id="save-status"></div>
+    </div>
   </div>
 
   <script src="/admin/admin.js"></script>

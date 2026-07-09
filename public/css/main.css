@@ -519,15 +519,51 @@ header .viewers span { color: var(--text); font-weight: 600; }
 }
 .emoji-btn:hover { background: var(--surface); }
 
-/* ─── RESPONSIVO ─── */
+/* ─── MOBILE: layout sticky estilo YouTube ─── */
 @media (max-width: 700px) {
-  .main-area { flex-direction: column; overflow: hidden; }
-  .player-panel { height: 38vw; min-height: 160px; flex: none; }
+  /* App scrollea; header y player quedan fijos arriba */
+  #app {
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  /* Score-bar scrollea con la página (no sticky en mobile) */
+  #score-bar { position: static; }
+
+  .main-area {
+    flex-direction: column;
+    overflow: visible;
+    flex: none;
+  }
+
+  /* Player sticky justo bajo el header, ratio 16:9 */
+  .player-panel {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 80;
+    height: 56.25vw;
+    min-height: auto;
+    flex: none;
+    background: #000;
+  }
+
+  /* Chat ocupa exactamente el resto del viewport */
   .chat-panel {
     width: 100%;
-    flex: 1;         /* ocupa todo el espacio restante */
-    min-height: 0;   /* sin esto el flex-child no puede shrink y no scrollea */
+    height: calc(100dvh - var(--header-h) - 56.25vw);
+    min-height: 280px;
+    flex: none;
+    overflow: hidden;
     border-left: none;
     border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
   }
 }

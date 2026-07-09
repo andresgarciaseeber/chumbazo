@@ -7,21 +7,39 @@
   const messagesEl  = document.getElementById('messages');
   const streamFrame = document.getElementById('stream-frame');
 
-  let myNick    = '';
-  let lastTs    = 0;
-  let sessionId = Math.random().toString(36).slice(2);
-  const viewerEl = document.getElementById('viewer-count');
+  let myNick      = '';
+  let lastTs      = 0;
+  let sessionId   = Math.random().toString(36).slice(2);
+  let isLive      = true;    // controlado desde el admin
+  let noMsgCount  = 0;       // para polling adaptivo
+  let pollTimer   = null;
+  const viewerEl  = document.getElementById('viewer-count');
 
-  // ── Stream URL ───────────────────────────────────────────────────────
-  // Se guarda pero no se aplica hasta que el usuario hace click (permite autoplay)
+  // Intervalos de polling (ms)
+  const POLL_ACTIVE  = 5000;   // con mensajes recientes
+  const POLL_IDLE    = 15000;  // sin mensajes por 2 min
+  const POLL_STANDBY = 60000;  // modo standby (admin pausó el evento)
+
+  // ── Config (stream URL + modo live) ─────────────────────────────────
   let pendingStreamUrl = '';
-  fetch('/api/config')
-    .then(r => r.json())
-    .then(({ streamUrl }) => { pendingStreamUrl = streamUrl || ''; });
+
+  function loadConfig() {
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(({ streamUrl, live }) => {
+        pendingStreamUrl = streamUrl || '';
+        isLive = live !== false;
+        if (!isLive) reschedulePolling();
+      })
+      .catch(() => {});
+  }
+
+  loadConfig();
+  setInterval(loadConfig, 5 * 60 * 1000); // re-chequea modo cada 5 min
 
   // ── Scores ───────────────────────────────────────────────────────────
   fetchScores();
-  setInterval(fetchScores, 60000);
+  setInterval(fetchScores, 2 * 60 * 1000); // cada 2 min (caché server 30s–5min)
 
   function fetchScores() {
     const mock = new URLSearchParams(location.search).get('mockscores');
@@ -131,21 +149,40 @@
       .catch(() => {});
   }
 
-  // ── Polling de mensajes nuevos ───────────────────────────────────────
+  // ── Polling de mensajes nuevos (adaptivo) ───────────────────────────
+  function currentInterval() {
+    if (!isLive)        return POLL_STANDBY;
+    if (noMsgCount > 24) return POLL_IDLE;   // sin msgs por ~2 min → 15s
+    return POLL_ACTIVE;
+  }
+
+  function reschedulePolling() {
+    if (!pollTimer) return; // no empezó todavía
+    clearInterval(pollTimer);
+    pollTimer = setInterval(fetchNew, currentInterval());
+  }
+
   function startPolling() {
-    pollTimer = setInterval(fetchNew, 1500);
+    pollTimer = setInterval(fetchNew, currentInterval());
   }
 
   function fetchNew() {
     fetch(`/api/messages?since=${lastTs}`)
       .then(r => r.json())
       .then(messages => {
-        if (!messages.length) return;
+        if (!messages.length) {
+          noMsgCount++;
+          if (noMsgCount === 25) reschedulePolling(); // activa modo idle
+          return;
+        }
+        const wasIdle = noMsgCount > 24;
+        noMsgCount = 0;
         messages.forEach(renderMsg);
         lastTs = messages[messages.length - 1].ts;
         scrollBottom();
+        if (wasIdle) reschedulePolling(); // vuelve a POLL_ACTIVE
       })
-      .catch(() => {}); // silencia errores de red transitorios
+      .catch(() => {});
   }
 
   // ── Enviar mensaje ───────────────────────────────────────────────────

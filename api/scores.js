@@ -1,7 +1,8 @@
 const { MongoClient } = require('mongodb');
 
-const ESPN_URL  = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
-const CACHE_TTL = 30 * 1000;
+const ESPN_URL       = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
+const CACHE_TTL_LIVE = 30  * 1000;        // 30s con partidos en vivo
+const CACHE_TTL_IDLE = 5   * 60 * 1000;   // 5min sin partidos en vivo
 
 let cachedClient = null;
 async function getDb() {
@@ -59,10 +60,16 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
-    const cacheCol = (await getDb()).collection('api_cache');
+    const db      = await getDb();
+    const col     = db.collection('settings');
+    const liveDoc = await col.findOne({ key: 'live_mode' });
+    if (liveDoc && liveDoc.value === false) {
+      return res.json({ type: 'none', matches: [] });
+    }
 
-    const cached = await cacheCol.findOne({ key: 'scores' });
-    if (cached && Date.now() - cached.at < CACHE_TTL) {
+    const cacheCol = db.collection('api_cache');
+    const cached   = await cacheCol.findOne({ key: 'scores' });
+    if (cached && Date.now() - cached.at < cached.ttl) {
       return res.json(cached.payload);
     }
 
@@ -72,10 +79,11 @@ module.exports = async (req, res) => {
     const payload = matches.length
       ? { type: hasLive ? 'live' : 'fixtures', matches }
       : { type: 'none', matches: [] };
+    const ttl = hasLive ? CACHE_TTL_LIVE : CACHE_TTL_IDLE;
 
     await cacheCol.updateOne(
       { key: 'scores' },
-      { $set: { key: 'scores', payload, at: Date.now() } },
+      { $set: { key: 'scores', payload, at: Date.now(), ttl } },
       { upsert: true }
     );
 

@@ -13,12 +13,16 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   let streamUrl = process.env.STREAM_URL || '';
+  let live = true;
   try {
-    const doc = await (await getDb()).collection('settings').findOne({ key: 'stream_url' });
-    if (doc?.value) streamUrl = doc.value;
-  } catch (_) {
-    // Si MongoDB falla, seguimos con el valor del .env
-  }
+    const col = (await getDb()).collection('settings');
+    const [urlDoc, liveDoc] = await Promise.all([
+      col.findOne({ key: 'stream_url' }),
+      col.findOne({ key: 'live_mode' }),
+    ]);
+    if (urlDoc?.value) streamUrl = urlDoc.value;
+    if (liveDoc) live = liveDoc.value !== false;
+  } catch (_) {}
 
-  res.json({ streamUrl });
+  res.json({ streamUrl, live });
 };
